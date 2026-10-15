@@ -1,0 +1,871 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Pulih Coffee — Take a Sip, Take a Break | Kopi Susu &amp; Camilan</title>
+  <meta name="description" content="Pulih Coffee: kopi susu dan camilan untuk jeda sebentar dan cerita lebih lama. Pilih menu favoritmu, atur pesanan, lalu kirim langsung via WhatsApp.">
+  <meta name="theme-color" content="#FFF8F2">
+
+  <!-- Favicon: ganti file assets/images/logo-pulih.png dengan logo asli -->
+  <link rel="icon" type="image/png" href="assets/images/logo-pulih.png">
+  <link rel="apple-touch-icon" href="assets/images/logo-pulih.png">
+
+  <!-- Open Graph (tampilan saat link dibagikan). Setelah website online,
+       ganti og:url & og:image dengan URL lengkap, cth: https://domainkamu.com/assets/images/hero-coffee.jpeg -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Pulih Coffee">
+  <meta property="og:title" content="Pulih Coffee — Take a Sip, Take a Break">
+  <meta property="og:description" content="Teman terbaik buat jeda sebentar. Pilih kopi favoritmu dan pesan langsung via WhatsApp.">
+  <meta property="og:image" content="assets/images/hero-coffee.jpeg">
+  <meta property="og:url" content="">
+  <meta property="og:locale" content="id_ID">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Poppins:wght@400;500;600;700;800&display=swap">
+
+  <!-- Bootstrap 5 + Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Leaflet CSS untuk Peta Interaktif & Perhitungan Jarak Ongkir -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+
+  <!-- Hero image dimuat lebih awal agar bagian atas cepat tampil -->
+  <link rel="preload" as="image" href="assets/images/hero-coffee.jpeg" fetchpriority="high">
+
+  <link rel="stylesheet" href="css/style.css">
+
+  <script>
+    // Menandai bahwa JavaScript aktif (dipakai untuk animasi reveal).
+    document.documentElement.classList.add('js');
+    // Jika gambar belum ada / gagal dimuat, tampilkan placeholder rapi (bukan ikon gambar rusak).
+    window.pulihImgFallback = function (img) {
+      var frame = img.closest('.media-frame') || img.parentElement;
+      if (!frame || frame.classList.contains('is-fallback')) return;
+      frame.classList.add('is-fallback');
+      img.hidden = true;
+      var ph = document.createElement('div');
+      ph.className = 'media-placeholder';
+      if (img.alt) { ph.setAttribute('role', 'img'); ph.setAttribute('aria-label', img.alt); }
+      else { ph.setAttribute('aria-hidden', 'true'); }
+      var i = document.createElement('i');
+      var icon = 'bi-cup-hot';
+      if (img.alt && /cireng|snack|makan|food/i.test(img.alt)) {
+        icon = 'bi-bag-heart';
+      }
+      i.className = 'bi ' + icon;
+      i.setAttribute('aria-hidden', 'true');
+      var s = document.createElement('span');
+      s.textContent = 'Foto segera hadir';
+      ph.appendChild(i); ph.appendChild(s);
+      frame.appendChild(ph);
+    };
+  </script>
+</head>
+
+<body>
+  <!-- Ikon dekoratif (biji kopi, bunga, kilau, garis) -->
+  <svg width="0" height="0" class="position-absolute" aria-hidden="true" focusable="false">
+    <symbol id="i-bean" viewBox="0 0 40 56">
+      <ellipse cx="20" cy="28" rx="15" ry="23" fill="currentColor"/>
+      <path d="M21 6c-9 12 7 26-2 44" fill="none" stroke="#FFF8F2" stroke-width="3" stroke-linecap="round" opacity=".55"/>
+    </symbol>
+    <symbol id="i-flower" viewBox="0 0 48 48">
+      <g fill="currentColor">
+        <circle cx="24" cy="11" r="9"/><circle cx="36.4" cy="20" r="9"/><circle cx="31.6" cy="34.5" r="9"/>
+        <circle cx="16.4" cy="34.5" r="9"/><circle cx="11.6" cy="20" r="9"/>
+      </g>
+      <circle cx="24" cy="24" r="6" fill="#FFF8F2"/>
+    </symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24">
+      <path d="M12 0c1 6.5 5.5 11 12 12-6.5 1-11 5.5-12 12-1-6.5-5.5-11-12-12C6.5 11 11 6.5 12 0z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-squiggle" viewBox="0 0 200 20">
+      <path d="M3 12c18-10 30 8 48 0s30-10 48 0 30 8 48 0 30-10 50 0" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>
+    </symbol>
+  </svg>
+
+  <a class="skip-link" href="#main">Lewati ke konten utama</a>
+
+  <!-- =====================================================
+       NAVBAR
+       ===================================================== -->
+  <header>
+    <nav id="mainNav" class="navbar navbar-expand-lg fixed-top site-nav" aria-label="Navigasi utama">
+      <div class="container">
+        <a class="navbar-brand brand" href="#beranda" aria-label="Pulih Coffee, kembali ke beranda">
+          <span class="brand-mark media-frame">
+            <!-- Logo: ganti assets/images/logo-pulih.png -->
+            <img src="assets/images/logo-pulih.png" alt="" width="40" height="40" onerror="pulihImgFallback(this)">
+          </span>
+          <span class="brand-text">Pulih <span>Coffee</span></span>
+        </a>
+
+        <div class="nav-actions order-lg-last">
+          <button id="navCartBtn" class="btn btn-pulih cart-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#cartSheet" aria-controls="cartSheet" aria-label="Buka keranjang">
+            <i class="bi bi-bag-heart" aria-hidden="true"></i>
+            <span class="cart-btn-label">Keranjang</span>
+            <span class="cart-badge is-empty" data-cart-count aria-hidden="true">0</span>
+          </button>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navLinks" aria-controls="navLinks" aria-expanded="false" aria-label="Buka menu navigasi">
+            <i class="bi bi-list" aria-hidden="true"></i>
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div class="collapse navbar-collapse" id="navLinks">
+          <ul class="navbar-nav ms-auto me-lg-3">
+            <li class="nav-item"><a class="nav-link" href="#beranda">Beranda</a></li>
+            <li class="nav-item"><a class="nav-link" href="#menu">Menu</a></li>
+            <li class="nav-item"><a class="nav-link" href="#tentang">Tentang Kami</a></li>
+            <li class="nav-item"><a class="nav-link" href="#cara-pesan">Cara Pesan</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- =====================================================
+         HERO
+         ===================================================== -->
+    <section id="beranda" class="hero" aria-labelledby="heroTitle">
+      <svg class="deco deco-bean hero-bean-1" aria-hidden="true"><use href="#i-bean"/></svg>
+      <svg class="deco deco-flower hero-flower-1" aria-hidden="true"><use href="#i-flower"/></svg>
+      <svg class="deco deco-sparkle hero-sparkle-1" aria-hidden="true"><use href="#i-sparkle"/></svg>
+
+      <div class="container">
+        <div class="row align-items-center gy-5 gx-lg-5">
+          <div class="col-lg-6 hero-copy">
+            <span class="eyebrow reveal"><i class="bi bi-stars" aria-hidden="true"></i> Your Little Coffee Escape</span>
+            <h1 id="heroTitle" class="hero-title reveal" style="--d:.08s">
+              Take a Sip,<br>
+              Take a <span class="hl">Break.<svg aria-hidden="true" preserveAspectRatio="none"><use href="#i-squiggle"/></svg></span>
+            </h1>
+            <p class="hero-lead reveal" style="--d:.16s">
+              Teman terbaik buat jeda sebentar, cerita lebih lama, dan menikmati hari dengan cara yang lebih sederhana.
+            </p>
+            <div class="hero-actions reveal" style="--d:.24s">
+              <a href="#menu" id="heroMenuBtn" class="btn btn-pulih btn-lg">
+                Lihat Menu <i class="bi bi-arrow-down-right" aria-hidden="true"></i>
+              </a>
+              <a href="#menu" id="heroOrderBtn" class="btn btn-pulih-outline btn-lg">
+                <i class="bi bi-bag-heart" aria-hidden="true"></i> Pesan Sekarang
+              </a>
+            </div>
+            <ul class="hero-points reveal" style="--d:.32s">
+              <li><i class="bi bi-cup-straw" aria-hidden="true"></i>Kopi susu &amp; camilan</li>
+              <li><i class="bi bi-whatsapp" aria-hidden="true"></i>Pesan via WhatsApp</li>
+              <li><i class="bi bi-wallet2" aria-hidden="true"></i>Cash / Transfer</li>
+            </ul>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="hero-visual reveal" style="--d:.2s">
+              <div class="hero-blob" aria-hidden="true"></div>
+              <figure class="hero-photo media-frame">
+                <!-- Foto hero: ganti assets/images/hero-coffee.jpeg (rasio ideal 4:5) -->
+                <img src="assets/images/hero-coffee.jpeg" alt="Es kopi susu Pulih Coffee dalam gelas kaca, dengan biji kopi dan kelopak bunga di sekitarnya" width="900" height="1117" fetchpriority="high" decoding="async" onerror="pulihImgFallback(this)">
+              </figure>
+
+              <div class="hero-sticker" aria-hidden="true">
+                <svg viewBox="0 0 120 120">
+                  <defs><path id="stickerCircle" d="M60,60 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0"/></defs>
+                  <text><textPath href="#stickerCircle" textLength="280">take a sip • take a break • pulih •</textPath></text>
+                </svg>
+                <i class="bi bi-cup-hot-fill"></i>
+              </div>
+
+              <div class="hero-chip chip-a" aria-hidden="true">
+                <span class="chip-icon"><i class="bi bi-heart-fill"></i></span>
+                <span><strong>Made for your break</strong><small>Sip slowly, stay longer</small></span>
+              </div>
+              <div class="hero-chip chip-b" aria-hidden="true">
+                <span class="chip-icon chip-icon-brown"><i class="bi bi-whatsapp"></i></span>
+                <span><strong>Easy to order</strong><small>Langsung via WhatsApp</small></span>
+              </div>
+              <svg class="deco deco-bean hero-bean-2" aria-hidden="true"><use href="#i-bean"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Running text dekoratif -->
+    <div class="marquee-wrap" aria-hidden="true">
+      <div class="marquee">
+        <div class="marquee-track">
+          <div class="marquee-group">
+            <span>Take a Sip</span><svg><use href="#i-sparkle"/></svg>
+            <span>Take a Break</span><svg><use href="#i-sparkle"/></svg>
+            <span>Your Little Coffee Escape</span><svg><use href="#i-sparkle"/></svg>
+            <span>Pulih Coffee</span><svg><use href="#i-sparkle"/></svg>
+          </div>
+          <div class="marquee-group">
+            <span>Take a Sip</span><svg><use href="#i-sparkle"/></svg>
+            <span>Take a Break</span><svg><use href="#i-sparkle"/></svg>
+            <span>Your Little Coffee Escape</span><svg><use href="#i-sparkle"/></svg>
+            <span>Pulih Coffee</span><svg><use href="#i-sparkle"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         TENTANG PULIH COFFEE
+         ===================================================== -->
+    <section id="tentang" class="section about" aria-labelledby="aboutTitle">
+      <div class="container">
+        <div class="row align-items-center gy-5 gx-lg-5">
+          <div class="col-lg-6">
+            <div class="about-visual reveal">
+              <figure class="about-photo media-frame">
+                <!-- Foto suasana: ganti assets/images/coffee-atmosphere.jpg (rasio ideal 4:5) -->
+                <img src="assets/images/coffee-atmosphere.jpg" alt="Suasana santai menikmati latte di meja kayu dekat jendela, dengan bunga dan biji kopi" width="900" height="1117" loading="lazy" decoding="async" onerror="pulihImgFallback(this)">
+              </figure>
+              <div class="about-note">
+                <i class="bi bi-quote" aria-hidden="true"></i>
+                <p>Kadang yang kita butuh cuma secangkir kopi dan sedikit waktu.</p>
+              </div>
+              <svg class="deco deco-flower about-flower" aria-hidden="true"><use href="#i-flower"/></svg>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <span class="eyebrow reveal"><i class="bi bi-heart" aria-hidden="true"></i> Tentang Kami</span>
+            <h2 id="aboutTitle" class="section-title reveal" style="--d:.08s">Sedikit Jeda, <span class="hl-soft">Banyak Cerita.</span></h2>
+            <p class="section-lead reveal" style="--d:.16s">
+              Pulih Coffee hadir untuk menemani momen sederhana kamu. Dari pagi yang sibuk sampai sore yang santai,
+              nikmati kopi favorit dan camilan kecil untuk membuat harimu terasa lebih menyenangkan.
+            </p>
+            <div class="about-moments reveal" style="--d:.24s">
+              <div class="moment">
+                <span class="moment-icon"><i class="bi bi-sunrise" aria-hidden="true"></i></span>
+                <span><strong>Pagi yang sibuk</strong><small>Teman semangat sebelum memulai hari.</small></span>
+              </div>
+              <div class="moment">
+                <span class="moment-icon"><i class="bi bi-sunset" aria-hidden="true"></i></span>
+                <span><strong>Sore yang santai</strong><small>Jeda manis setelah kelas atau kerja.</small></span>
+              </div>
+            </div>
+            <a href="#menu" class="btn btn-pulih reveal" style="--d:.3s">Cari Favoritmu <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         MENU FAVORIT (kartu dibuat otomatis dari data PRODUCTS di js/script.js)
+         ===================================================== -->
+    <section id="menu" class="section menu-section" aria-labelledby="menuTitle">
+      <svg class="deco deco-sparkle menu-sparkle-1" aria-hidden="true"><use href="#i-sparkle"/></svg>
+      <svg class="deco deco-bean menu-bean-1" aria-hidden="true"><use href="#i-bean"/></svg>
+      <div class="container">
+        <div class="section-head text-center">
+          <span class="eyebrow reveal"><i class="bi bi-cup-hot" aria-hidden="true"></i> Menu Pilihan Pulih</span>
+          <h2 id="menuTitle" class="section-title reveal" style="--d:.08s">Minuman Segar &amp; Camilan Cireng</h2>
+          <p class="section-lead mx-auto reveal" style="--d:.16s">Pilih minuman favorit dan aneka cireng gurih untuk melengkapi jeda santaimu. Tersedia varian siap santap maupun kemasan frozen.</p>
+        </div>
+
+        <!-- Tab Filter Kategori -->
+        <div class="menu-filter-nav reveal" style="--d:.2s" role="tablist" aria-label="Filter kategori menu">
+          <button type="button" class="menu-filter-pill is-active" data-filter="all" role="tab" aria-selected="true">
+            <i class="bi bi-grid-fill" aria-hidden="true"></i>
+            <span>Semua Menu</span>
+            <span class="filter-badge">7</span>
+          </button>
+          <button type="button" class="menu-filter-pill" data-filter="minuman" role="tab" aria-selected="false">
+            <i class="bi bi-cup-straw" aria-hidden="true"></i>
+            <span>Minuman</span>
+            <span class="filter-badge">3</span>
+          </button>
+          <button type="button" class="menu-filter-pill" data-filter="makanan" role="tab" aria-selected="false">
+            <i class="bi bi-egg-fried" aria-hidden="true"></i>
+            <span>Makanan &amp; Cireng</span>
+            <span class="filter-badge">4</span>
+          </button>
+        </div>
+
+        <!-- Grup 1: Minuman -->
+        <div class="menu-group reveal" id="groupMinuman" data-group="minuman">
+          <div class="menu-group-header">
+            <div class="menu-group-title-wrap">
+              <span class="menu-group-icon"><i class="bi bi-cup-straw" aria-hidden="true"></i></span>
+              <div>
+                <h3 class="menu-group-title">Varian Minuman</h3>
+                <p class="menu-group-sub">Kopi susu manis lembut &amp; minuman creamy penyegar hari</p>
+              </div>
+            </div>
+            <span class="menu-group-count">3 Pilihan</span>
+          </div>
+          <div id="gridMinuman" class="row row-cols-2 row-cols-md-3 row-cols-lg-3 menu-grid"></div>
+        </div>
+
+        <!-- Grup 2: Makanan & Cireng -->
+        <div class="menu-group reveal" id="groupMakanan" data-group="makanan">
+          <div class="menu-group-header">
+            <div class="menu-group-title-wrap">
+              <span class="menu-group-icon menu-group-icon-pink"><i class="bi bi-egg-fried" aria-hidden="true"></i></span>
+              <div>
+                <h3 class="menu-group-title">Makanan &amp; Camilan Cireng</h3>
+                <p class="menu-group-sub">Cireng ayam suwir pedas chili oil &amp; cireng kuah creamy (Goreng &amp; Frozen)</p>
+              </div>
+            </div>
+            <span class="menu-group-count">4 Pilihan</span>
+          </div>
+          <div id="gridMakanan" class="row row-cols-2 row-cols-md-3 row-cols-lg-4 menu-grid"></div>
+        </div>
+
+        <noscript>
+          <!-- Daftar cadangan jika JavaScript nonaktif. Jika harga di js/script.js diubah, ubah juga di sini. -->
+          <div class="noscript-box">
+            <p><strong>JavaScript sedang nonaktif.</strong> Keranjang dan pemesanan otomatis membutuhkan JavaScript. Berikut daftar menu kami:</p>
+            <h4 class="mt-3 mb-2" style="font-size:1.1rem; color:var(--pc-brown);">☕ Varian Minuman:</h4>
+            <ul class="noscript-menu">
+              <li><span>Butterscotch</span><span>Rp10.000</span></li>
+              <li><span>Gula Aren</span><span>Rp10.000</span></li>
+              <li><span>Matcha</span><span>Rp11.000</span></li>
+            </ul>
+            <h4 class="mt-3 mb-2" style="font-size:1.1rem; color:var(--pc-brown);">🥟 Varian Makanan &amp; Cireng:</h4>
+            <ul class="noscript-menu">
+              <li><span>Cireng Ayam Suwir Chili Oil Goreng (Isi 6)</span><span>Rp10.000</span></li>
+              <li><span>Cireng Ayam Suwir Chili Oil Frozen (Isi 7)</span><span>Rp10.000</span></li>
+              <li><span>Cireng Kuah Creamy Goreng (Isi 4)</span><span>Rp10.000</span></li>
+              <li><span>Cireng Kuah Creamy Frozen (Isi 5)</span><span>Rp10.000</span></li>
+            </ul>
+            <p class="mb-0">Silakan hubungi kami via WhatsApp untuk memesan.</p>
+          </div>
+        </noscript>
+
+        <p class="menu-note reveal">
+          <i class="bi bi-info-circle" aria-hidden="true"></i>
+          Ketersediaan menu dikonfirmasi langsung oleh pemilik melalui WhatsApp.
+        </p>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         KEUNGGULAN
+         ===================================================== -->
+    <section class="section features" aria-labelledby="featuresTitle">
+      <div class="container">
+        <div class="section-head text-center">
+          <span class="eyebrow reveal"><i class="bi bi-stars" aria-hidden="true"></i> Kenapa Pulih?</span>
+          <h2 id="featuresTitle" class="section-title reveal" style="--d:.08s">Small Cup, Big Comfort</h2>
+        </div>
+        <div class="row g-3 g-md-4">
+          <div class="col-md-4">
+            <article class="feature-card reveal">
+              <span class="feature-icon"><i class="bi bi-cup-hot" aria-hidden="true"></i></span>
+              <h3>Made for Your Break</h3>
+              <p>Teman untuk beristirahat sejenak, di sela tugas, kerja, atau obrolan panjang.</p>
+            </article>
+          </div>
+          <div class="col-md-4">
+            <article class="feature-card reveal" style="--d:.1s">
+              <span class="feature-icon feature-icon-rose"><i class="bi bi-sliders" aria-hidden="true"></i></span>
+              <h3>Coffee, Your Way</h3>
+              <p>Pilih menu sesuai selera, dari yang klasik sampai yang manis lembut.</p>
+            </article>
+          </div>
+          <div class="col-md-4">
+            <article class="feature-card reveal" style="--d:.2s">
+              <span class="feature-icon feature-icon-pink"><i class="bi bi-whatsapp" aria-hidden="true"></i></span>
+              <h3>Easy to Order</h3>
+              <p>Pesan langsung melalui WhatsApp, tanpa perlu daftar akun atau aplikasi tambahan.</p>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =====================================================
+         CARA PEMESANAN
+         ===================================================== -->
+    <section id="cara-pesan" class="section howto" aria-labelledby="howtoTitle">
+      <div class="container">
+        <div class="howto-panel">
+          <svg class="deco deco-flower howto-flower" aria-hidden="true"><use href="#i-flower"/></svg>
+          <div class="section-head text-center">
+            <span class="eyebrow reveal"><i class="bi bi-list-check" aria-hidden="true"></i> Cara Pesan</span>
+            <h2 id="howtoTitle" class="section-title reveal" style="--d:.08s">Pesan Semudah Tiga Langkah</h2>
+          </div>
+
+          <ol class="row g-3 g-md-4 steps-row list-unstyled mb-0">
+            <li class="col-md-4">
+              <div class="step-card reveal">
+                <div class="step-top">
+                  <span class="step-num" aria-hidden="true">1</span>
+                  <i class="bi bi-hand-index-thumb step-icon" aria-hidden="true"></i>
+                </div>
+                <h3><span class="visually-hidden">Langkah 1: </span>Choose Your Menu</h3>
+                <p>Pilih kopi dan snack favoritmu, lalu tekan “Tambah ke Keranjang”.</p>
+              </div>
+            </li>
+            <li class="col-md-4">
+              <div class="step-card reveal" style="--d:.1s">
+                <div class="step-top">
+                  <span class="step-num" aria-hidden="true">2</span>
+                  <i class="bi bi-sliders2 step-icon" aria-hidden="true"></i>
+                </div>
+                <h3><span class="visually-hidden">Langkah 2: </span>Set Your Order</h3>
+                <p>Atur jumlah produk, pilih ambil di tempat atau COD / diantar, dan metode pembayaran.</p>
+              </div>
+            </li>
+            <li class="col-md-4">
+              <div class="step-card reveal" style="--d:.2s">
+                <div class="step-top">
+                  <span class="step-num" aria-hidden="true">3</span>
+                  <i class="bi bi-chat-heart step-icon" aria-hidden="true"></i>
+                </div>
+                <h3><span class="visually-hidden">Langkah 3: </span>Chat on WhatsApp</h3>
+                <p>Kirim ringkasan pesanan ke pemilik lewat WhatsApp, lalu tunggu konfirmasinya.</p>
+              </div>
+            </li>
+          </ol>
+
+          <div class="confirm-note reveal">
+            <span class="confirm-icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></span>
+            <p class="mb-0">
+              <strong>Pesanan baru dianggap terkonfirmasi setelah pemilik membalas chat WhatsApp kamu.</strong>
+              Ketersediaan menu, ongkos kirim (untuk COD / Diantar), dan detail pembayaran juga dikonfirmasi lewat chat.
+            </p>
+          </div>
+
+          <div class="howto-actions reveal">
+            <a href="#menu" class="btn btn-pulih btn-lg">Mulai Pilih Menu</a>
+            <button type="button" class="btn btn-pulih-outline btn-lg" data-bs-toggle="offcanvas" data-bs-target="#cartSheet" aria-controls="cartSheet">
+              <i class="bi bi-bag-heart" aria-hidden="true"></i> Buka Keranjang
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- =====================================================
+       FOOTER
+       (alamat, jam buka, dan nomor WhatsApp diisi otomatis dari STORE_CONFIG di js/script.js)
+       ===================================================== -->
+  <footer class="site-footer">
+    <svg class="footer-wave" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 42C240 6 480 4 720 30s480 34 720 4V60H0Z" fill="currentColor"/>
+    </svg>
+    <div class="container">
+      <div class="row gy-4 gx-lg-5">
+        <div class="col-lg-4">
+          <a class="brand brand-footer" href="#beranda" aria-label="Pulih Coffee, kembali ke beranda">
+            <span class="brand-mark media-frame">
+              <img src="assets/images/logo-pulih.png" alt="" width="40" height="40" loading="lazy" onerror="pulihImgFallback(this)">
+            </span>
+            <span class="brand-text">Pulih <span>Coffee</span></span>
+          </a>
+          <p class="footer-tagline">Take a sip, take a break. Your little coffee escape untuk hari-hari yang butuh jeda.</p>
+          <a href="#cara-pesan" class="btn btn-rose" data-wa-link id="footerWaBtn">
+            <i class="bi bi-whatsapp" aria-hidden="true"></i> Chat WhatsApp
+          </a>
+        </div>
+
+        <nav class="col-6 col-lg-2" aria-label="Navigasi footer">
+          <h2 class="footer-title">Jelajahi</h2>
+          <ul class="footer-list">
+            <li><a href="#beranda">Beranda</a></li>
+            <li><a href="#menu">Menu</a></li>
+            <li><a href="#tentang">Tentang Kami</a></li>
+            <li><a href="#cara-pesan">Cara Pesan</a></li>
+          </ul>
+        </nav>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+          <h2 class="footer-title">Kontak &amp; Jam</h2>
+          <ul class="footer-list footer-info">
+            <li>
+              <i class="bi bi-whatsapp" aria-hidden="true"></i>
+              <span><span class="visually-hidden">WhatsApp: </span><span data-store="whatsappDisplay">Nomor WhatsApp segera diinfokan</span></span>
+            </li>
+            <li>
+              <i class="bi bi-clock" aria-hidden="true"></i>
+              <div class="footer-hours-content">
+                <span class="visually-hidden">Jam operasional: </span>
+                <span class="footer-hours-label">Jam Buka (Senin – Sabtu):</span>
+                <div data-store="openingHours">
+                  <div class="store-hours-schedule">
+                    <div class="hours-item"><span>Senin – Rabu, Jumat:</span> <strong>06.00 – 20.00 WIB</strong></div>
+                    <div class="hours-item"><span>Kamis:</span> <strong>06.00 – 18.00 WIB</strong></div>
+                    <div class="hours-item"><span>Sabtu:</span> <strong>06.00 – 23.00 WIB</strong></div>
+                    <div class="hours-item hours-off"><span>Minggu:</span> <em>Tutup / Libur</em></div>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="col-lg-3">
+          <h2 class="footer-title">Lokasi</h2>
+          <ul class="footer-list footer-info">
+            <li>
+              <i class="bi bi-geo-alt" aria-hidden="true"></i>
+              <span data-store="address">Alamat segera diinfokan</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p class="mb-0">© <span id="year">2026</span> KLIKIN. All rights reserved.</p>
+        <p class="mb-0">Semua pesanan dikonfirmasi langsung oleh pemilik via WhatsApp.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- =====================================================
+       TOMBOL MENGAMBANG: kembali ke atas + WhatsApp
+       ===================================================== -->
+  <div class="float-stack">
+    <button type="button" id="backToTop" class="back-to-top" aria-label="Kembali ke atas">
+      <i class="bi bi-arrow-up" aria-hidden="true"></i>
+    </button>
+    <a href="#cara-pesan" id="floatWa" class="float-wa" data-wa-link aria-label="Chat Pulih Coffee via WhatsApp">
+      <i class="bi bi-whatsapp" aria-hidden="true"></i>
+    </a>
+  </div>
+
+  <!-- Bar keranjang di bawah layar (khusus mobile/tablet, muncul jika ada item) -->
+  <button type="button" id="cartBar" class="cart-bar" data-bs-toggle="offcanvas" data-bs-target="#cartSheet" aria-controls="cartSheet">
+    <span class="cart-bar-icon"><i class="bi bi-bag-heart-fill" aria-hidden="true"></i></span>
+    <span class="cart-bar-info">
+      <small id="cartBarCount">0 item</small>
+      <strong id="cartBarTotal">Rp0</strong>
+    </span>
+    <span class="cart-bar-cta">Lihat Keranjang <i class="bi bi-arrow-right" aria-hidden="true"></i></span>
+  </button>
+
+  <!-- =====================================================
+       KERANJANG (Offcanvas)
+       ===================================================== -->
+  <aside class="offcanvas offcanvas-end cart-sheet" tabindex="-1" id="cartSheet" aria-labelledby="cartSheetTitle">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="offcanvas-header">
+      <div>
+        <h2 class="offcanvas-title" id="cartSheetTitle" tabindex="-1"><i class="bi bi-bag-heart" aria-hidden="true"></i> Keranjang Kamu</h2>
+        <p class="cart-summary-text" id="cartSummaryText">Belum ada item</p>
+      </div>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Tutup keranjang"></button>
+    </div>
+
+    <div class="offcanvas-body">
+      <div id="cartEmpty" class="cart-empty">
+        <span class="cart-empty-icon"><i class="bi bi-cup-hot" aria-hidden="true"></i></span>
+        <h3>Keranjangmu masih kosong</h3>
+        <p>Yuk, pilih kopi atau camilan favoritmu dulu.</p>
+        <button type="button" id="cartEmptyMenuBtn" class="btn btn-pulih">Lihat Menu</button>
+      </div>
+      <ul id="cartList" class="cart-list" aria-label="Daftar produk di keranjang" hidden></ul>
+    </div>
+
+    <div class="cart-footer" id="cartFooter" hidden>
+      <div class="cart-total-row">
+        <span>Total produk</span>
+        <strong id="cartTotal" aria-live="polite">Rp0</strong>
+      </div>
+      <p class="cart-footnote"><i class="bi bi-info-circle" aria-hidden="true"></i> Belum termasuk ongkir (jika diantar). Ongkir dikonfirmasi pemilik via WhatsApp.</p>
+      <button type="button" id="checkoutBtn" class="btn btn-pulih btn-lg w-100">
+        Lanjutkan Pemesanan <i class="bi bi-arrow-right" aria-hidden="true"></i>
+      </button>
+      <button type="button" id="clearCartBtn" class="btn btn-link-subtle w-100">Kosongkan keranjang</button>
+    </div>
+  </aside>
+
+  <!-- =====================================================
+       CHECKOUT (Modal 3 langkah: Detail → Ringkasan → Kirim)
+       ===================================================== -->
+  <div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg modal-fullscreen-sm-down">
+      <div class="modal-content checkout">
+        <div class="modal-header">
+          <div>
+            <ol class="checkout-steps" aria-label="Tahapan pemesanan">
+              <li data-step-indicator="1" class="is-active" aria-current="step"><span class="dot">1</span>Detail</li>
+              <li data-step-indicator="2"><span class="dot">2</span>Ringkasan</li>
+              <li data-step-indicator="3"><span class="dot">3</span>Kirim</li>
+            </ol>
+            <h2 class="modal-title" id="checkoutTitle" tabindex="-1">Atur Pesananmu</h2>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup checkout"></button>
+        </div>
+
+        <div class="modal-body">
+          <!-- STEP 1: Detail pesanan -->
+          <form id="checkoutForm" data-step="1" novalidate>
+            <div class="order-mini">
+              <div class="order-mini-head">
+                <h3>Pesananmu <span id="miniOrderCount" class="order-mini-count">0 item</span></h3>
+                <button type="button" id="editCartBtn" class="btn-text"><i class="bi bi-pencil-square" aria-hidden="true"></i> Ubah</button>
+              </div>
+              <ul id="miniOrderList"></ul>
+            </div>
+
+            <fieldset class="form-section">
+              <legend class="form-section-title"><span class="num">1</span> Data Pemesan</legend>
+              <label for="custName" class="form-label">Nama kamu</label>
+              <input type="text" id="custName" name="name" class="form-control" maxlength="60" autocomplete="name" placeholder="cth. Mega" required>
+              <div class="invalid-feedback">Isi nama kamu dulu ya (minimal 2 huruf).</div>
+            </fieldset>
+
+            <fieldset class="form-section" aria-describedby="fulfillmentError">
+              <legend class="form-section-title"><span class="num">2</span> Cara Menerima Pesanan</legend>
+              <div class="choice-grid" id="fulfillmentGroup">
+                <div class="choice">
+                  <input class="choice-input" type="radio" name="fulfillment" id="fulPickup" value="pickup" required>
+                  <label class="choice-card" for="fulPickup">
+                    <span class="choice-ico"><i class="bi bi-shop" aria-hidden="true"></i></span>
+                    <span><strong>Ambil di Tempat</strong><small>Tanpa ongkos kirim</small></span>
+                    <i class="bi bi-check-circle-fill choice-check" aria-hidden="true"></i>
+                  </label>
+                </div>
+                <div class="choice">
+                  <input class="choice-input" type="radio" name="fulfillment" id="fulDelivery" value="delivery">
+                  <label class="choice-card" for="fulDelivery">
+                    <span class="choice-ico"><i class="bi bi-scooter" aria-hidden="true"></i></span>
+                    <span><strong>COD / Diantar</strong><small>Ongkir Rp1.000 / km • DO: Plemahan, Papar, Purwoasri, Kunjang, Pare</small></span>
+                    <i class="bi bi-check-circle-fill choice-check" aria-hidden="true"></i>
+                  </label>
+                </div>
+              </div>
+              <p class="group-error" id="fulfillmentError"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> Pilih cara menerima pesanan.</p>
+
+              <div id="pickupInfo" class="info-box" hidden>
+                <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                <div>
+                  <strong>Lokasi pengambilan:</strong> <span data-store="address">Alamat segera diinfokan</span><br>
+                  <strong class="d-inline-block mt-2">Jam operasional (Senin – Sabtu):</strong>
+                  <div data-store="openingHours">
+                    <div class="store-hours-schedule">
+                      <div class="hours-item"><span>Senin – Rabu, Jumat:</span> <strong>06.00 – 20.00 WIB</strong></div>
+                      <div class="hours-item"><span>Kamis:</span> <strong>06.00 – 18.00 WIB</strong></div>
+                      <div class="hours-item"><span>Sabtu:</span> <strong>06.00 – 23.00 WIB</strong></div>
+                      <div class="hours-item hours-off"><span>Minggu:</span> <em>Tutup / Libur</em></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="deliveryFields" hidden>
+                <!-- Informasi Toko Asal Pengiriman -->
+                <div class="delivery-store-banner">
+                  <div class="delivery-store-icon"><i class="bi bi-shop" aria-hidden="true"></i></div>
+                  <div class="delivery-store-info">
+                    <span class="delivery-store-tag"><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> Dikirim dari Toko Offline:</span>
+                    <p class="delivery-store-addr"><span data-store="address">Jl. Totok Kerot, Kaliawen Barat, Ngino, Kec. Plemahan, Kabupaten Kediri, Jawa Timur 64155</span></p>
+                    <div class="delivery-rate-pill">
+                      <i class="bi bi-tags-fill" aria-hidden="true"></i> Tarif: <strong>Rp1.000 / km</strong> (pembulatan per km)
+                    </div>
+                    <div class="delivery-coverage-tag mt-2">
+                      <i class="bi bi-geo-alt-fill" aria-hidden="true"></i> <span><strong>DO Wilayah:</strong> Plemahan, Papar, Purwoasri, Kunjang, Pare</span>
+                    </div>
+                  </div>
+                </div>
+
+                <label for="custAddress" class="form-label mt-2">Alamat lengkap pengantaran <span class="text-danger">*</span></label>
+                <textarea id="custAddress" name="address" class="form-control" rows="2" maxlength="300" autocomplete="street-address" placeholder="Nama jalan, nomor rumah, RT/RW, desa/kelurahan, patokan..."></textarea>
+                <div class="invalid-feedback">Tulis alamat lengkap ya (minimal 10 karakter).</div>
+
+                <!-- Penentuan Titik & Jarak Pengantaran -->
+                <div class="delivery-location-picker mt-3">
+                  <div class="delivery-location-head">
+                    <div>
+                      <span class="location-picker-title"><i class="bi bi-pin-map-fill" aria-hidden="true"></i> Titik Lokasi &amp; Jarak Pengantaran</span>
+                      <p class="location-picker-sub">Tentukan titik antarmu untuk kalkulasi jarak &amp; ongkir otomatis.</p>
+                    </div>
+                    <button type="button" id="btnDetectGps" class="btn btn-sm btn-gps">
+                      <i class="bi bi-crosshair" aria-hidden="true"></i> <span id="btnGpsText">Gunakan GPS</span>
+                    </button>
+                  </div>
+
+                  <div id="gpsAlert" class="alert alert-gps d-none" role="status"></div>
+
+                  <!-- Container Peta Leaflet -->
+                  <div id="deliveryMapContainer" class="delivery-map-wrapper">
+                    <div id="deliveryMap" class="delivery-map" role="application" aria-label="Peta interaktif jarak pengantaran"></div>
+                    <div class="map-helper-tip">
+                      <i class="bi bi-arrows-move" aria-hidden="true"></i> Geser <strong>pin merah</strong> atau <strong>ketuk peta</strong> untuk memilih titik antar kamu
+                    </div>
+                  </div>
+
+                  <!-- Kontrol Jarak Manual / Stepper -->
+                  <div class="distance-stepper-box">
+                    <div class="distance-stepper-label">
+                      <span class="fw-semibold"><i class="bi bi-signpost-2" aria-hidden="true"></i> Jarak Tempuh Pengantaran</span>
+                      <small class="text-muted-pulih">Dihitung dari Jl. Totok Kerot, Plemahan</small>
+                    </div>
+                    <div class="distance-stepper-controls">
+                      <button type="button" class="btn-step" id="btnDistMinus" aria-label="Kurangi jarak 1 km"><i class="bi bi-dash-lg" aria-hidden="true"></i></button>
+                      <div class="distance-val-wrap">
+                        <input type="number" id="distManualInput" class="form-control dist-input text-center" min="0.1" max="100" step="0.1" value="1.0" aria-label="Jarak pengantaran dalam kilometer">
+                        <span class="dist-unit">km</span>
+                      </div>
+                      <button type="button" class="btn-step" id="btnDistPlus" aria-label="Tambah jarak 1 km"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                    </div>
+                  </div>
+
+                  <!-- Live Breakdown Ongkir -->
+                  <div class="delivery-fee-breakdown" id="deliveryFeeCard">
+                    <div class="fee-row">
+                      <span><i class="bi bi-speedometer2" aria-hidden="true"></i> Estimasi Jarak:</span>
+                      <strong id="liveDistText">1 km (dihitung 1 km)</strong>
+                    </div>
+                    <div class="fee-row">
+                      <span><i class="bi bi-calculator" aria-hidden="true"></i> Perhitungan Tarif:</span>
+                      <span id="liveRateText">1 km × Rp1.000</span>
+                    </div>
+                    <div class="fee-divider"></div>
+                    <div class="fee-row fee-row-total">
+                      <span><i class="bi bi-scooter" aria-hidden="true"></i> Biaya Ongkir:</span>
+                      <strong class="fee-amount" id="liveFeeAmount">Rp1.000</strong>
+                    </div>
+                  </div>
+
+                  <!-- Notes DO Wilayah -->
+                  <div class="info-box info-pink mt-3">
+                    <i class="bi bi-info-circle-fill" aria-hidden="true"></i>
+                    <div>
+                      <strong>Catatan Delivery Order (DO):</strong><br>
+                      Pengantaran melayani <strong>wilayah Plemahan, Papar, Purwoasri, Kunjang, dan Pare</strong>. Biaya Rp1.000 per 1 km dihitung langsung dari kedai kami di Jl. Totok Kerot, Ngino, Plemahan.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="form-section" aria-describedby="paymentError">
+              <legend class="form-section-title"><span class="num">3</span> Metode Pembayaran</legend>
+              <div class="choice-grid" id="paymentGroup">
+                <div class="choice">
+                  <input class="choice-input" type="radio" name="payment" id="payCash" value="cash" required>
+                  <label class="choice-card" for="payCash">
+                    <span class="choice-ico"><i class="bi bi-cash-coin" aria-hidden="true"></i></span>
+                    <span><strong>Cash / Tunai</strong><small>Bayar saat terima / ambil</small></span>
+                    <i class="bi bi-check-circle-fill choice-check" aria-hidden="true"></i>
+                  </label>
+                </div>
+                <div class="choice">
+                  <input class="choice-input" type="radio" name="payment" id="payTransfer" value="transfer">
+                  <label class="choice-card" for="payTransfer">
+                    <span class="choice-ico"><i class="bi bi-bank" aria-hidden="true"></i></span>
+                    <span><strong>Transfer Bank</strong><small>Rekening dikirim via WhatsApp</small></span>
+                    <i class="bi bi-check-circle-fill choice-check" aria-hidden="true"></i>
+                  </label>
+                </div>
+              </div>
+              <p class="group-error" id="paymentError"><i class="bi bi-exclamation-circle" aria-hidden="true"></i> Pilih metode pembayaran.</p>
+
+              <div id="cashInfo" class="info-box" hidden>
+                <i class="bi bi-cash" aria-hidden="true"></i>
+                <div>Bayar tunai saat pesanan diterima atau diambil, sesuai kesepakatan dengan pemilik.</div>
+              </div>
+              <div id="transferInfo" class="info-box" hidden>
+                <i class="bi bi-bank" aria-hidden="true"></i>
+                <div>Detail rekening akan <strong>dikirim oleh pemilik via WhatsApp</strong> setelah pesanan dikonfirmasi. Transfer hanya ke rekening yang diberikan langsung oleh pemilik.</div>
+              </div>
+            </fieldset>
+
+            <fieldset class="form-section">
+              <legend class="form-section-title"><span class="num">4</span> Catatan <small>(opsional)</small></legend>
+              <label for="custNote" class="visually-hidden">Catatan untuk pesanan</label>
+              <textarea id="custNote" name="note" class="form-control" rows="2" maxlength="200" placeholder="cth. less sugar, es dipisah, jam ambil..."></textarea>
+              <div class="form-text text-end"><span id="noteCount">0</span>/200</div>
+            </fieldset>
+
+            <p class="safety-note"><i class="bi bi-shield-check" aria-hidden="true"></i> Pulih Coffee tidak pernah meminta PIN, kata sandi, atau kode OTP kamu.</p>
+          </form>
+
+          <!-- STEP 2: Ringkasan -->
+          <section id="stepSummary" data-step="2" hidden aria-label="Ringkasan pesanan">
+            <div class="summary-card">
+              <h3 class="summary-heading"><i class="bi bi-receipt" aria-hidden="true"></i> Rincian Produk</h3>
+              <div class="table-responsive">
+                <table class="summary-table">
+                  <thead>
+                    <tr><th scope="col">Produk</th><th scope="col" class="text-center">Qty</th><th scope="col" class="text-end">Subtotal</th></tr>
+                  </thead>
+                  <tbody id="summaryItems"></tbody>
+                  <tfoot>
+                    <tr><th scope="row" colspan="2">Subtotal produk</th><td class="text-end" id="summarySubtotal">Rp0</td></tr>
+                    <tr id="summaryDeliveryRow" hidden><th scope="row" colspan="2"><i class="bi bi-scooter" aria-hidden="true"></i> Ongkos kirim (<span id="summaryDeliveryDist">1 km</span> @ Rp1.000)</th><td class="text-end" id="summaryDeliveryFee">Rp1.000</td></tr>
+                    <tr class="summary-grand-row"><th scope="row" colspan="2">Total Pembayaran</th><td class="text-end" id="summaryTotal">Rp0</td></tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            <div class="summary-card">
+              <h3 class="summary-heading"><i class="bi bi-card-checklist" aria-hidden="true"></i> Detail Pesanan</h3>
+              <dl class="summary-details" id="summaryDetails"></dl>
+            </div>
+
+            <div class="info-box info-pink" id="summaryDeliveryNote" hidden>
+              <i class="bi bi-scooter" aria-hidden="true"></i>
+              <div>Biaya ongkir sebesar <strong id="summaryDeliveryNoteFee">Rp1.000</strong> (<span id="summaryDeliveryNoteKm">1 km</span>) dihitung dari lokasi toko di Jl. Totok Kerot, Plemahan. Melayani DO wilayah <strong>Plemahan, Papar, Purwoasri, Kunjang, Pare</strong> dan sudah dimasukkan ke dalam total pembayaran di atas.</div>
+            </div>
+            <div class="info-box" id="summaryTransferNote" hidden>
+              <i class="bi bi-bank" aria-hidden="true"></i>
+              <div>Jangan transfer dulu sebelum pemilik mengonfirmasi pesanan dan mengirimkan detail rekening.</div>
+            </div>
+
+            <div class="alert alert-pulih-error" id="waConfigError" role="alert" hidden>
+              <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+              <div>Nomor WhatsApp toko belum diatur, jadi pesanan belum bisa dikirim.<br><small>(Untuk pemilik: isi <code>whatsappNumber</code> di <code>STORE_CONFIG</code> pada file <code>js/script.js</code>.)</small></div>
+            </div>
+          </section>
+
+          <!-- STEP 3: Setelah WhatsApp dibuka -->
+          <section id="stepSent" data-step="3" hidden aria-label="Status pesanan">
+            <div class="sent-state">
+              <span class="sent-icon"><i class="bi bi-chat-heart" aria-hidden="true"></i></span>
+              <span class="status-pill"><i class="bi bi-hourglass-split" aria-hidden="true"></i> Menunggu konfirmasi pemilik</span>
+              <h3>Ringkasan pesanan sudah disiapkan di WhatsApp</h3>
+              <p>Pastikan kamu sudah menekan <strong>tombol kirim</strong> di WhatsApp. Pesananmu <strong>belum terkonfirmasi</strong> sampai pemilik membalas chat kamu.</p>
+              <p class="small text-muted-pulih mb-0">WhatsApp tidak terbuka? Tekan “Buka WhatsApp Lagi”.</p>
+            </div>
+          </section>
+        </div>
+
+        <div class="modal-footer checkout-footer">
+          <div class="checkout-total">
+            <span id="checkoutTotalLabel">Total produk</span>
+            <strong id="checkoutTotal" aria-live="polite">Rp0</strong>
+          </div>
+          <div class="checkout-actions">
+            <button type="button" id="btnBack" class="btn btn-ghost" hidden><i class="bi bi-arrow-left" aria-hidden="true"></i> Ubah</button>
+            <button type="submit" id="btnNext" form="checkoutForm" class="btn btn-pulih">Lihat Ringkasan <i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+            <button type="button" id="btnSendWa" class="btn btn-wa" hidden><i class="bi bi-whatsapp" aria-hidden="true"></i> Kirim Pesanan via WhatsApp</button>
+            <button type="button" id="btnReopenWa" class="btn btn-ghost" hidden><i class="bi bi-whatsapp" aria-hidden="true"></i> Buka WhatsApp Lagi</button>
+            <button type="button" id="btnFinish" class="btn btn-pulih" hidden>Selesai &amp; Kosongkan Keranjang</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notifikasi -->
+  <div class="toast-zone" aria-live="polite" aria-atomic="true">
+    <div id="cartToast" class="toast pulih-toast" role="status">
+      <div class="toast-body">
+        <span class="toast-icon"><i id="cartToastIcon" class="bi bi-check2" aria-hidden="true"></i></span>
+        <span id="cartToastText" class="toast-text"></span>
+        <button type="button" id="cartToastAction" class="toast-action">Lihat</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+  <!-- Leaflet JS untuk peta interaktif & geolokasi -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
+  <script src="js/script.js" defer></script>
+</body>
+</html>
